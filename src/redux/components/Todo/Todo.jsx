@@ -10,8 +10,12 @@ import {
   LinkedP,
   FlexTitleBox,
 } from "./styles";
-import { useMutation, useQueryClient } from "react-query";
-import { removeTodo, switchTodo } from "../../../api/todos";
+import { useQueryClient } from "react-query";
+import { queryKeys } from "../../../query/keys.constans";
+import {
+  useRemoveMutation,
+  useSwitchMutation,
+} from "../../../query/useTodosQuery";
 
 /**
  * 컴포넌트 개요 : 메인 > TODOLIST > TODO. 할 일의 단위 컴포넌트
@@ -23,17 +27,9 @@ function Todo({ todo, isActive }) {
   const queryClient = useQueryClient();
   // 삭제 확인 용 메시지 관리
 
-  const deleteMutation = useMutation(removeTodo, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("todos");
-    },
-  });
+  const { mutate: removeMutate } = useRemoveMutation();
 
-  const switchMutation = useMutation(switchTodo, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("todos");
-    },
-  });
+  const { mutate: switchMutate } = useSwitchMutation();
 
   // hooks
   const navigate = useNavigate();
@@ -45,12 +41,20 @@ function Todo({ todo, isActive }) {
       isDone: !todo.isDone,
     };
     console.log(todo.id, !todo.isDone);
-    switchMutation.mutate(payload);
+    switchMutate(payload, {
+      onSuccess: () => {
+        queryClient.invalidateQueries(queryKeys.TODOS);
+      },
+    });
   };
 
   // [삭제] 버튼 선택 시 호출되는 함수(user의 confirmation 필요)
   const handleRemoveButton = () => {
-    deleteMutation.mutate(todo.id);
+    removeMutate(todo.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries(queryKeys.TODOS);
+      },
+    });
   };
 
   // [상세보기]를 선택하는 경우 이동하는 함수

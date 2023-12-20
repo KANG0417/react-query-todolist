@@ -3,6 +3,7 @@ import { StyledDiv, StyledTodoListHeader, StyledTodoListBox } from "./styles";
 import Todo from "../Todo";
 import { getTodos } from "../../../api/todos";
 import { useQuery } from "react-query";
+import { queryKeys } from "../../../query/keys.constans";
 
 /**
  * 컴포넌트 개요 : 메인 > TODOLIST. 할 일의 목록을 가지고 있는 컴포넌트
@@ -11,9 +12,16 @@ import { useQuery } from "react-query";
  * @returns TodoList 컴포넌트
  */
 function TodoList({ isActive }) {
-  const { isLoading, isError, data } = useQuery("todos", getTodos);
+  const { isFetching, isLoading, isError, data } = useQuery(
+    queryKeys.TODOS,
+    getTodos,
+    {
+      staleTime: 60,
+      retry: 7,
+    }
+  );
 
-  if (isLoading) {
+  if (isFetching) {
     return <p>로딩중입니다....!</p>;
   }
 
